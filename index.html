@@ -1,0 +1,527 @@
+<html>
+<head>
+    <title>HIV/AIDS in United State</title>
+	<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+    <link href='css/bootstrap.css' rel='stylesheet' type='text/css'>
+<!-- Load the d3 library. -->
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<style>
+    body { font-family: "Futura"; background-color: #eee; } 
+    svg { /*border: solid gray 1px;*/ }
+
+    #navbar { background-color: #c3262f; border-color: #8a0102; color: white; }
+
+    .hispanic_latino { fill: #ecc048; }
+    .black_african { fill: #c03747;  }
+    .white { fill: #56a3c8;  }
+    .others {fill: #74a853;}
+
+    #content {margin-top: 40px;}
+    #content .panel-body { text-align: center;  }
+    .graph-title { text-align: left; margin-top: 50px;}
+</style>
+</head>
+<body>
+    <div id="navbar" class="navbar navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-collapse collapse">
+            <div class="col-xs-1">
+                <img src="img/ribbon.png" style="margin-top: 2px; max-height: 45px; margin-bottom: 2px;">
+            </div>
+            <div class="col-xs-8">
+                <h3 style="color: white;">HIV/AIDS in United State</h3>   
+            </div>
+            </div>
+        </div>
+    </div> 
+
+
+    <div id="content" class="container">
+        <h2 class="graph-title">People Living with HIV/AIDS in US</h2> 
+        <div  class="panel">
+            <div id = "map" class="panel-body"></div>    
+        </div>
+
+        <h2 class="graph-title">AIDS Living with HIV/AIDS by Region in US</h2>
+        <div  class="panel">
+            <div id = "Central" class="panel-body"></div>
+        </div>
+
+        <div  class="panel">
+            <div id = "Northern" class="panel-body"></div>
+        </div>
+
+        <div  class="panel">
+            <div id = "Pacific" class="panel-body"></div>
+        </div>
+
+        <div  class="panel">
+            <div id = "Southern" class="panel-body"></div>
+        </div>
+
+        <div  class="panel">
+            <div id = "Western" class="panel-body"></div>
+        </div>
+
+        <div class="row" style="text-align: center;">
+            <small>Data source: <a href="http://kff.org/state-category/hivaids">http://kff.org/state-category/hivaids</a></small>
+        </div>
+    </div>
+
+<script>
+var width = 960,
+    height = 500;
+
+var projection = d3.geo.albersUsa();
+var path = d3.geo.path().projection(projection);
+    
+var svg0 = d3.select("#map").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+var states;
+
+var living;
+
+var hivLivingScale = d3.scale.linear().domain([1, 5000, 10000, 30000, 130000]).range(["#ffe1d0", "#ffbfb4", "#ff837e", "#ff4242", "#bf1616"]);
+//"#ffe1d0", "#ffbfb4", "#ff837e", "#ff4242", "#bf1616"
+d3.json("state.json", function(error, shapes) {
+    states = topojson.feature(shapes, shapes.objects.state).features;
+    var countryPaths = svg0.append("g");
+    countryPaths.selectAll("path").data(states).enter()
+    .append("path")
+    .attr("d", path)
+    .style("stroke", "white")
+    .style("stroke-width", 0.5)
+    .style("fill", "B8B8B8");
+
+    d3.csv("us_living2013.csv", function (error, rows) {
+        if (error) {console.log(error);}
+        
+        // what should we do with the CSV data?
+        living = d3.map(rows, function (country) { return (country.Location); });
+        
+        countryPaths.selectAll("path")
+        .style("fill", function (country) {
+            var countryData = living.get(country.properties.NAME10);
+            if (!countryData) { return "gray"; }// If countryData is not defined
+            return hivLivingScale(countryData.Total);
+            // set fill based on country attributes
+        }); 
+    });
+});
+
+svg0.append("rect").attr("x", 785).attr("y", 325).attr("height", 150).attr("width", 160).style("fill", "none").style("stroke", "black");
+
+var gradient1 = svg0.append("defs").append("linearGradient")
+    .attr("id", "gradient1")
+    .attr("x1", "0%")
+    .attr("y1", "0%")
+    .attr("x2", "100%")
+    .attr("y2", "0%")
+    .attr("spreadMethod", "pad");
+gradient1.append("stop")
+    .attr("offset", "0%")
+    .attr("stop-color", "#ffe1d0")
+    .attr("stop-opacity", 1);
+gradient1.append("stop")
+    .attr("offset", "100%")
+    .attr("stop-color", "#ffbfb4")
+    .attr("stop-opacity", 1);
+svg0.append("rect").attr("x", 800).attr("y", 360).attr("height", 15).attr("width", 40).style("fill", "url(#gradient1)");
+
+var gradient2 = svg0.append("defs").append("linearGradient")
+    .attr("id", "gradient2")
+    .attr("x1", "0%")
+    .attr("y1", "0%")
+    .attr("x2", "100%")
+    .attr("y2", "0%")
+    .attr("spreadMethod", "pad");
+gradient2.append("stop")
+    .attr("offset", "0%")
+    .attr("stop-color", "#ffbfb4")
+    .attr("stop-opacity", 1);
+gradient2.append("stop")
+    .attr("offset", "100%")
+    .attr("stop-color", "#ff837e")
+    .attr("stop-opacity", 1);
+svg0.append("rect").attr("x", 800).attr("y", 390).attr("height", 15).attr("width", 40).style("fill", "url(#gradient2)");
+
+var gradient3 = svg0.append("defs").append("linearGradient")
+    .attr("id", "gradient3")
+    .attr("x1", "0%")
+    .attr("y1", "0%")
+    .attr("x2", "100%")
+    .attr("y2", "0%")
+    .attr("spreadMethod", "pad");
+gradient3.append("stop")
+    .attr("offset", "0%")
+    .attr("stop-color", "#ff8381")
+    .attr("stop-opacity", 1);
+gradient3.append("stop")
+    .attr("offset", "100%")
+    .attr("stop-color", "#ff4242")
+    .attr("stop-opacity", 1);
+svg0.append("rect").attr("x", 800).attr("y", 420).attr("height", 15).attr("width", 40).style("fill", "url(#gradient3)");
+
+var gradient4 = svg0.append("defs").append("linearGradient")
+    .attr("id", "gradient4")
+    .attr("x1", "0%")
+    .attr("y1", "0%")
+    .attr("x2", "100%")
+    .attr("y2", "0%")
+    .attr("spreadMethod", "pad");
+gradient4.append("stop")
+    .attr("offset", "0%")
+    .attr("stop-color", "#ff4242")
+    .attr("stop-opacity", 1);
+gradient4.append("stop")
+    .attr("offset", "100%")
+    .attr("stop-color", "#bf1616")
+    .attr("stop-opacity", 1);
+svg0.append("rect").attr("x", 800).attr("y", 450).attr("height", 15).attr("width", 40).style("fill", "url(#gradient4)");
+
+svg0.append("text").text("Infected People").attr("x", 800).attr("y", 338.5).style("alignment-baseline", "middle").style("font-size", 14);
+svg0.append("text").text("1 - 5,000").attr("x", 845).attr("y", 368.5).style("alignment-baseline", "middle").style("font-size", 12);
+svg0.append("text").text("5,000 - 10,000").attr("x", 845).attr("y", 398.5).style("alignment-baseline", "middle").style("font-size", 12);
+svg0.append("text").text("10,000 - 30,000").attr("x", 845).attr("y", 428.5).style("alignment-baseline", "middle").style("font-size", 12);
+svg0.append("text").text("30,000 - 130,000").attr("x", 845).attr("y", 458.5).style("alignment-baseline", "middle").style("font-size", 12);
+</script>
+
+
+
+<script>
+
+
+function drawGender(){
+    for (var regionID = 0; regionID < 5 ; regionID++) {
+        var svg1 = d3.select("#" + regions[regionID + 1] + " > svg");
+        
+        var gradient = svg1.append("defs").append("linearGradient")
+            .attr("id", "gradient")
+            .attr("x1", "0%")
+            .attr("y1", "0%")
+            .attr("x2", "100%")
+            .attr("y2", "0%")
+            .attr("spreadMethod", "pad");
+
+        gradient.append("stop")
+            .attr("offset", offset[regionID])
+            .attr("stop-color", "#19B5FE")
+            .attr("stop-opacity", 1);
+        gradient.append("stop")
+            .attr("offset", "100%")
+            .attr("stop-color", "#eb4b89")
+            .attr("stop-opacity", 1);
+        
+        svg1.append("image").attr("x", 20).attr("y", 120).attr("width", 30).attr("height", 30).attr("xlink:href" ,"male.svg");
+        svg1.append("image").attr("x", 250).attr("y", 120).attr("width", 30).attr("height", 30).attr("xlink:href" ,"female.svg");
+        svg1.append("rect").attr("x", 50).attr("y", 120).attr("rx", 10).attr("ry", 15).attr("width", 200).attr("height", 30).style("fill", "url(#gradient)");
+        svg1.append("text").text((offset[regionID]*100).toFixed(1) + "%").attr("x", 60).attr("y", 135).style("alignment-baseline", "middle").style("font-size", 14).style("format", ",.1%").attr("fill", "white");
+        svg1.append("text").text(((1-offset[regionID])*100).toFixed(1) + "%").attr("x", 200).attr("y", 135).style("alignment-baseline", "middle").style("font-size", 14).attr("fill", "white");   
+    }
+}
+
+function drawSector(){ 
+    for (var regionID = 1; regionID <=5 ; regionID++) {
+        var svg1 = d3.select("#" + regions[regionID] + " > svg");
+        for (var i = 0; i < radius.length; i++) { 
+            
+            svg1.append("path").attr("d", "M " + cx + " " + cy + " L " + (cx + radius[i]) + ", " + cy + " A " + radius[i] + " " + radius[i] + " 0 0 0 " + (cx + x1[i]) + " " + (cy - y1[i]) + " Z").style("stroke", "gray").style("fill", "none").style("opacity", 0.3).style("stroke-width", 1);
+            svg1.append("path").attr("d", "M " + cx + " " + cy + " L " + (cx + x1[i]) + " " + (cy - y1[i]) + " A " + radius[i] + " " + radius[i] + " 0 0 0 " + (cx + x2[i]) + " " + (cy - y2[i]) + " Z").style("stroke", "gray").style("fill", "none").style("opacity", 0.3).style("stroke-width", 1);
+            svg1.append("path").attr("d", "M " + cx + " " + cy + " L " + (cx + x2[i]) + " " + (cy - y2[i]) + " A " + radius[i] + " " + radius[i] + " 0 0 0 " + (cx - x2[i]) + " " + (cy - y2[i]) + " Z").style("stroke", "gray").style("fill", "none").style("opacity", 0.3).style("stroke-width", 1);
+            svg1.append("path").attr("d", "M " + cx + " " + cy + " L " + (cx - x2[i]) + " " + (cy - y2[i]) + " A " + radius[i] + " " + radius[i] + " 0 0 0 " + (cx - x1[i]) + " " + (cy - y1[i]) + " Z").style("stroke", "gray").style("fill", "none").style("opacity", 0.3).style("stroke-width", 1);
+            svg1.append("path").attr("d", "M " + cx + " " + cy + " L " + (cx - x1[i]) + " " + (cy - y1[i]) + " A " + radius[i] + " " + radius[i] + " 0 0 0 " + (cx - radius[i]) + " " + cy + " Z").style("stroke", "gray").style("fill", "none").style("opacity", 0.3).style("stroke-width", 1);
+
+            svg1.append("path").attr("d", "M " + (cx + x1[0] + 10) + " " + (cy - y1[3] - 5) + " L " + (cx + x1[0] + 25) + " " + (cy - y1[3] - 10) + "").style("stroke", "black").style("fill", "none");
+            svg1.append("path").attr("d", "M " + (cx + x2[0] + 30) + " " + (cy - y2[1]) + " L " + (cx + x2[0] + 40) + " " + (cy - y2[1] - 15) + "").style("stroke", "black").style("fill", "none");
+            svg1.append("path").attr("d", "M " + cx + " " + (cy - y1[0] - 40) + " L " + cx + " " + (cy - y1[0] - 60) + "").style("stroke", "black").style("fill", "none");
+            svg1.append("path").attr("d", "M " + (cx - x2[0] - 30) + " " + (cy - y2[1]) + " L " + (cx - x2[0] - 40) + " " + (cy - y2[1] - 15) + "").style("stroke", "black").style("fill", "none");
+            svg1.append("path").attr("d", "M " + (cx - x1[0] - 10) + " " + (cy - y1[3] - 5) + " L " + (cx - x1[0] - 25) + " " + (cy - y1[3] - 10) + "").style("stroke", "black").style("fill", "none");
+            svg1.append("text").text("Male-to-male").attr("x", cx + x1[0] + 25).attr("y", cy - y1[3] - 10).style("font-size", 11).style("alignment-baseline", "middle");
+            svg1.append("text").text("sexual contact").attr("x", cx + x1[0] + 25).attr("y", cy - y1[3]).style("font-size", 11).style("alignment-baseline", "middle");
+            svg1.append("text").text("Heterosexual contact").attr("x", cx + x2[0] + 40).attr("y", cy - y2[1] - 15).style("alignment-baseline", "middle").style("font-size", 11);
+
+            svg1.append("text").text("Injection drug use").attr("x", cx).attr("y", cy - y1[0] - 65).style("alignment-baseline", "middle").style("text-anchor", "middle").style("font-size", 11);
+            svg1.append("text").text("Male-to-male sexual contact").attr("x", cx - x2[0] - 40).attr("y", cy - y2[1] - 25).style("font-size", 11).style("alignment-baseline", "middle").style("text-anchor", "end");
+            svg1.append("text").text("& Injection drug use").attr("x", cx - x2[0] - 40).attr("y", cy - y2[1] - 15).style("font-size", 11).style("alignment-baseline", "middle").style("text-anchor", "end");
+            svg1.append("text").text("Other").attr("x", cx - x1[0] - 25).attr("y", cy - y1[3] - 10).style("font-size", 11).style("alignment-baseline", "middle").style("text-anchor", "end");
+        }
+    }
+   
+}
+
+
+function drawSectorColor() {
+    
+    var ratioRadius = [];
+    var rx1 = [];
+    var rx2 = [];
+    var ry1 = [];
+    var ry2 = [];
+
+   for (var j = 0; j < 5 ; j++) {
+        var svg1 = d3.select("#" + regions[j+1] + " > svg");
+
+        for (var i = 0; i < ratio[j].length; i++) {
+            ratioRadius[i] = Math.sqrt(ratio[j][i]) * radius[0];
+            rx1[i] = ratioRadius[i] * Math.cos(36 * Math.PI / 180);
+            rx2[i] = ratioRadius[i] * Math.cos(72 * Math.PI / 180);
+            ry1[i] = ratioRadius[i] * Math.sin(36 * Math.PI / 180);
+            ry2[i] = ratioRadius[i] * Math.sin(72 * Math.PI / 180);
+        }
+
+
+        svg1.append("path").attr("d", "M " + cx + " " + cy + " L " + (cx + ratioRadius[0]) + ", " + cy + " A " + ratioRadius[0] + " " + ratioRadius[0] + " 0 0 0 " + (cx + rx1[0]) + " " + (cy - ry1[0]) + " Z").style("stroke", "none").style("fill", "#E74C3C");
+        svg1.append("path").attr("d", "M " + cx + " " + cy + " L " + (cx + rx1[1]) + " " + (cy - ry1[1]) + " A " + ratioRadius[1] + " " + ratioRadius[1] + " 0 0 0 " + (cx + rx2[1]) + " " + (cy - ry2[1]) + " Z").style("stroke", "none").style("fill", "#F4B350");
+        svg1.append("path").attr("d", "M " + cx + " " + cy + " L " + (cx + rx2[2]) + " " + (cy - ry2[2]) + " A " + ratioRadius[2] + " " + ratioRadius[2] + " 0 0 0 " + (cx - rx2[2]) + " " + (cy - ry2[2]) + " Z").style("stroke", "none").style("fill", "#87D37C");
+        svg1.append("path").attr("d", "M " + cx + " " + cy + " L " + (cx - rx2[3]) + " " + (cy - ry2[3]) + " A " + ratioRadius[3] + " " + ratioRadius[3] + " 0 0 0 " + (cx - rx1[3]) + " " + (cy - ry1[3]) + " Z").style("stroke", "none").style("fill", "#52B3D9");
+        svg1.append("path").attr("d", "M " + cx + " " + cy + " L " + (cx - rx1[4]) + " " + (cy - ry1[4]) + " A " + ratioRadius[4] + " " + ratioRadius[4] + " 0 0 0 " + (cx - ratioRadius[4]) + " " + cy + " Z").style("stroke", "none").style("fill", "#AEA8D3");
+
+        svg1.append("text").text((ratio[j][0] * 100).toFixed(1)+ "%").attr("x", cx + x1[1]).attr("y", cy - y1[4]).style("font-size", 12).style("alignment-baseline", "middle").style("text-anchor", "middle").attr("transform", "translate(0, -10), rotate(72, " + (cx + x1[1]) + ", " + (cy - y1[4]) + ")");
+        svg1.append("text").text((ratio[j][1] * 100).toFixed(1)+ "%").attr("x", cx + x1[3]).attr("y", cy - y1[2]).style("font-size", 12).style("alignmet-baseline", "middle").style("text-anchor", "middle").attr("transform", "translate(10, -20), rotate(38, " + (cx + x1[3]) + ", " + (cy - y1[2]) + ")");
+        svg1.append("text").text((ratio[j][2] * 100).toFixed(1)+ "%").attr("x", cx).attr("y", cy - y1[4]).style("font-size", 12).style("alignment-baseline", "middle").style("text-anchor", "middle").attr("transform", "translate(1, -68)");
+        svg1.append("text").text((ratio[j][3] * 100).toFixed(1)+ "%").attr("x", cx - x1[3]).attr("y", cy - y1[2]).style("font-size", 12).style("alignmet-baseline", "middle").style("text-anchor", "middle").attr("transform", "translate(-10, -20), rotate(-40, " + (cx - x1[3]) + ", " + (cy - y1[2]) + ")");
+        svg1.append("text").text((ratio[j][4] * 100).toFixed(1)+ "%").attr("x", cx - x1[1]).attr("y", cy - y1[4]).style("font-size", 12).style("alignment-baseline", "middle").style("text-anchor", "middle").attr("transform", "translate(0, -10), rotate(-72, " + (cx - x1[1]) + ", " + (cy - y1[4]) + ")");
+    }
+}
+
+function drawRegionMap(id){
+    var regions = {1: "Central", 2: "Northern", 3: "Pacific", 4: "Southern", 5: "Western"};
+
+    //for (var regionID = 1; regionID <=5 ; regionID++) {
+           // var svg1 = d3.select("#" + regions[regionID] + " > svg");
+           //console.log(regions[regionID]);
+        var countryPaths = d3.select("#" + regions[id] + " > svg")
+                            .append("g")
+                            .attr("transform", "translate("+ -270 +","+ 70 +")")
+                            .attr("class", "countryPath");
+        //console.log("#" + regions[regionID] + " > svg", countryPaths);
+
+        var projectionRegion = d3.geo.albersUsa().scale(500);
+        var pathRegion = d3.geo.path().projection(projectionRegion);
+
+        d3.json("state.json", function(error, shapes) {
+            states = topojson.feature(shapes, shapes.objects.state).features;
+            
+            countryPaths.selectAll("path").data(states).enter()
+            .append("path")
+            .attr("d", pathRegion)
+            .style("stroke", "white")
+            .style("stroke-width", 0.5)
+            .style("fill", "B8B8B8");
+
+            d3.csv("us_living2013.csv", function (error, rows) {
+                if (error) {console.log(error);}
+                
+                living = d3.map(rows, function (country) { return (country.Location); });
+                
+                countryPaths.selectAll("path")
+                .style("fill", function (country) {
+                    var countryData = living.get(country.properties.NAME10);
+
+                    if(countryData.Region == regions[id]) {return "#c03747";}
+                    
+                    return "rgb(238, 238, 238)";
+                }); 
+            });
+        });
+}
+
+</script>
+
+
+
+
+<script>
+
+var width = 960,
+    height = 500;
+var regions = {1: "Central", 2: "Northern", 3: "Pacific", 4: "Southern", 5: "Western"};
+var offset = [0.796, 0.696, 0.876, 0.718, 0.8];
+
+var radius = [120, 96, 72, 48, 24];
+var cx = 750;
+var cy = 480;
+var x1 = [];
+var x2 = [];
+var y1 = [];
+var y2 = [];
+for (var i = 0; i < radius.length; i++) {
+    x1[i] = radius[i] * Math.cos(36 * Math.PI / 180);
+    x2[i] = radius[i] * Math.cos(72 * Math.PI / 180);
+    y1[i] = radius[i] * Math.sin(36 * Math.PI / 180);
+    y2[i] = radius[i] * Math.sin(72 * Math.PI / 180);
+}
+
+var ratio = [];
+ratio[0] = [0.614, 0.101, 0.056, 0.214, 0.015];
+ratio[1] = [0.400, 0.242, 0.041, 0.296, 0.021];
+ratio[2] = [0.699, 0.081, 0.086, 0.124, 0.010];
+ratio[3] = [0.506, 0.101, 0.043, 0.337, 0.014];
+ratio[4] = [0.596, 0.107, 0.071, 0.216, 0.010];
+
+
+var svg1 = d3.select("#Central").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+svg1.append("text").text("Central").attr("x", "30").attr("y", 40).style("font-size", "35");
+svg1.append("text").text("Infection Rate: 0.1817%").attr("x", "30").attr("y", 80).style("font-size", "20");
+svg1.append("text").text("National Funding: $328.31 Million").attr("x", "30").attr("y", 110).style("font-size", "20");
+    
+var svg2 = d3.select("#Northern").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+svg2.append("text").text("Northern").attr("x", "30").attr("y", 40).style("font-size", "35");
+svg2.append("text").text("Infection Rate: 0.5428%").attr("x", "30").attr("y", 80).style("font-size", "20");
+svg2.append("text").text("National Funding: $956.49 Million").attr("x", "30").attr("y", 110).style("font-size", "20");
+   
+var svg3 = d3.select("#Pacific").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+svg3.append("text").text("Pacific").attr("x", "30").attr("y", 40).style("font-size", "35");
+svg3.append("text").text("Infection Rate: 0.2168%").attr("x", "30").attr("y", 80).style("font-size", "20");
+svg3.append("text").text("National Funding: $514.85 Million").attr("x", "30").attr("y", 110).style("font-size", "20");
+
+
+
+svg3.append("image").attr("x", 20).attr("y", 120).attr("width", 30).attr("height", 30).attr("xlink:href" ,"male.svg");
+svg3.append("image").attr("x", 250).attr("y", 120).attr("width", 30).attr("height", 30).attr("xlink:href" ,"female.svg");
+svg3.append("rect").attr("x", 50).attr("y", 120).attr("rx", 10).attr("ry", 15).attr("width", 200).attr("height", 30).style("fill", "url(#gradient)");
+svg3.append("text").text("87.6%").attr("x", 60).attr("y", 135).style("alignment-baseline", "middle").style("font-size", 14);
+svg3.append("text").text("12.4%").attr("x", 200).attr("y", 135).style("alignment-baseline", "middle").style("font-size", 14);
+
+    
+var svg4 = d3.select("#Southern").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+svg4.append("text").text("Southern").attr("x", "30").attr("y", 40).style("font-size", "35");
+svg4.append("text").text("Infection Rate: 0.3566%").attr("x", "30").attr("y", 80).style("font-size", "20");
+svg4.append("text").text("National Funding: $823.47 Million").attr("x", "30").attr("y", 110).style("font-size", "20");
+
+
+
+svg4.append("image").attr("x", 20).attr("y", 120).attr("width", 30).attr("height", 30).attr("xlink:href" ,"male.svg");
+svg4.append("image").attr("x", 250).attr("y", 120).attr("width", 30).attr("height", 30).attr("xlink:href" ,"female.svg");
+svg4.append("rect").attr("x", 50).attr("y", 120).attr("rx", 10).attr("ry", 15).attr("width", 200).attr("height", 30).style("fill", "url(#gradient)");
+svg4.append("text").text("71.8%").attr("x", 60).attr("y", 135).style("alignment-baseline", "middle").style("font-size", 14);
+svg4.append("text").text("28.2%").attr("x", 200).attr("y", 135).style("alignment-baseline", "middle").style("font-size", 14);
+
+    
+var svg5 = d3.select("#Western").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+svg5.append("text").text("Western").attr("x", "30").attr("y", 40).style("font-size", "35");
+svg5.append("text").text("Infection Rate: 0.1317%").attr("x", "30").attr("y", 80).style("font-size", "20");
+svg5.append("text").text("National Funding: $312.79 Million").attr("x", "30").attr("y", 110).style("font-size", "20");
+
+
+
+svg5.append("image").attr("x", 20).attr("y", 120).attr("width", 30).attr("height", 30).attr("xlink:href" ,"male.svg");
+svg5.append("image").attr("x", 250).attr("y", 120).attr("width", 30).attr("height", 30).attr("xlink:href" ,"female.svg");
+svg5.append("rect").attr("x", 50).attr("y", 120).attr("rx", 10).attr("ry", 15).attr("width", 200).attr("height", 30).style("fill", "url(#gradient)");
+svg5.append("text").text("80.0%").attr("x", 60).attr("y", 135).style("alignment-baseline", "middle").style("font-size", 14);
+svg5.append("text").text("20.0%").attr("x", 200).attr("y", 135).style("alignment-baseline", "middle").style("font-size", 14);
+
+drawSectorColor();
+drawSector();
+
+drawGender();
+for(var id = 1; id < 6; id++){
+    drawRegionMap(id);
+}
+
+</script>
+
+
+
+<script>
+var byEthnicitynRace;
+var ethnicitynRace = ["black_african",  "hispanic_latino", "white", "others"];
+
+var ethnicitynRaceLabel = {"black_african": "Black/African American", "hispanic_latino": "Hispanic/Latino", "white": "White", "others": "Others"}
+var byEthnicitynRace_height = 240;
+var byEthnicitynRace_width = 400;
+var byEthnicitynRace_padding = 20;
+
+var yBands = d3.scale.ordinal()
+    .domain(ethnicitynRace)
+    .rangeRoundBands([10, byEthnicitynRace_height], 0.8);
+
+var yPoints = d3.scale.ordinal()
+    .domain(ethnicitynRace)
+    .rangePoints([10, byEthnicitynRace_height], 1.5); 
+
+var xScale = d3.scale.linear()
+    .domain([0, 1])
+    .range([byEthnicitynRace_padding*4, byEthnicitynRace_width - byEthnicitynRace_padding]);
+
+var regions = {1: "central", 2: "northern", 3: "pacific", 4: "southern", 5: "western"};
+d3.csv("living2013byEthnicitynRace.csv", function (error, rows) {
+    byEthnicity = d3.map(rows, function (region) { 
+        return (region.regionID); 
+    });
+    for (var regionID = 1; regionID <=5 ; regionID++) {
+        d3.select("#" + regions[regionID] + " > svg").append("text")
+            .text("People living with AIDS/HIV by Ethnicity/Race")
+            .attr("transform", "translate("+ 430 +","+ 80 +")")
+            .attr("font-size", "20px")
+            .attr("font-weight", "bold");
+        var g = d3.select("#" + regions[regionID] + " > svg")
+                    .append("g")
+                    .attr("transform", "translate("+ 520 +","+ 50 +")");
+
+        ethnicitynRace.forEach(function (group) {
+            g.append("text").attr("x", 0)
+            .attr("y", yPoints(group)+ yBands.rangeBand()*0.5)
+            .attr("text-anchor", "middle")
+            .text(ethnicitynRaceLabel[group])
+            .attr("class", group)
+            .attr("font-weight", "bold");
+            
+            g.append("text").attr("x", xScale(1) + byEthnicitynRace_padding)
+            .attr("y", yPoints(group)+ yBands.rangeBand()*0.5)
+            .attr("text-anchor", "middle")
+            .text(Math.floor(byEthnicity.get(regionID)[group] * 100) + "%")
+            .attr("class", group);
+            
+            g.append("rect")
+            .attr("x", xScale(0))
+            .attr("y", yBands(group))
+            .attr("rx", 5)
+            .attr("rx", 5)
+            .attr("class", group)
+            .attr("height", yBands.rangeBand())
+            .attr("width", 
+            xScale( byEthnicity.get(regionID)[group] ) - xScale(0));
+
+            g.append("rect")
+            .attr("x", xScale( byEthnicity.get(regionID)[group] ))
+            .attr("y", yBands(group))
+            .attr("rx", 5)
+            .attr("rx", 5)
+            .attr("height", yBands.rangeBand())
+            .attr("width", xScale(1) - xScale(byEthnicity.get(regionID)[group]))
+            .attr("fill", "#eee");
+
+            g.append("circle")
+            .attr("cx", xScale( byEthnicity.get(regionID)[group] ))
+            .attr("cy", yBands(group) + yBands.rangeBand()*0.5)
+            .attr("r", 8)
+            .attr("class", group);
+        });       
+       
+    }
+});   
+</script>
+
+</body>
+</html>
+
+
